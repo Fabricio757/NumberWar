@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:NumberWar"
+             xmlns:tt="clr-namespace:TouchTracking"
+             x:Class="NumberWar.MainPage">
+    <Grid BackgroundColor="Maroon" x:Name="GrillaPrincipal">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0.5*" />
+            <RowDefinition Height="4.5*" />
+            <RowDefinition Height="2*" />
+        </Grid.RowDefinitions>
+        <!-- Place new controls here -->
+        <Label x:Name="Titulo" Text="Number War  5" BackgroundColor="CadetBlue" Grid.Row="0" Grid.Column="0"></Label>
+        <Grid x:Name="Grilla" BackgroundColor="DarkCyan" RowSpacing="3" ColumnSpacing="3" Grid.Row="1" Grid.Column="0">
+
+        </Grid>        
+        <StackLayout Grid.Row="2" Grid.Column="0">
+            <Label x:Name="Coordenadas2" Text="" BackgroundColor="CadetBlue" VerticalOptions="FillAndExpand" ></Label>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0.25*" />
+                    <ColumnDefinition Width="0.25*" />
+                    <ColumnDefinition Width="0.25*" />
+                    <ColumnDefinition Width="0.25*" />
+                </Grid.ColumnDefinitions>
+                <Button x:Name="btnNuevoVector" Text="Soldiers" BackgroundColor="CadetBlue" Grid.Column="0" VerticalOptions="FillAndExpand" Clicked="btnNuevoVector_Clicked"></Button>
+                <Button x:Name="btnReset" Text="New Game" BackgroundColor="CadetBlue"  Grid.Column="1" VerticalOptions="FillAndExpand" Clicked="btnReset_Clicked"></Button>
+                <Button x:Name="btnAux" Text="Help" BackgroundColor="CadetBlue"  Grid.Column="2" VerticalOptions="FillAndExpand" Clicked="btnAux_Clicked"></Button>
+                <Entry x:Name="txtIngreso" Grid.Column="3" Placeholder="Enter text here"></Entry>
+            </Grid>
+            <Label x:Name="Pie" Text="" BackgroundColor="CadetBlue" VerticalOptions="FillAndExpand" ></Label>
+        </StackLayout>
+        
+            <Grid x:Name="VistaNuevos" IsVisible="False" BackgroundColor="Black">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="0.1*" />
+                    <RowDefinition Height="0.8*" />
+                    <RowDefinition Height="0.1*" />
+                </Grid.RowDefinitions>
+            <Label x:Name="lblInfo" Grid.Row="0" Text="" BackgroundColor="Tomato" VerticalOptions="FillAndExpand" ></Label>
+            <ListView x:Name="ListaNuevos" Grid.Row="1" BackgroundColor="Azure" ItemTapped="ListaNuevos_ItemTapped" >
+                </ListView>                
+                <Button x:Name="btnCerrar" Text="Cancel" BackgroundColor="Tomato"  Grid.Row="2" VerticalOptions="FillAndExpand" Clicked="btnCerrar_Clicked"></Button>
+            </Grid>
+
+        <AbsoluteLayout x:Name="bxvMensaje" IsVisible="False" BackgroundColor="Brown" VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand">
+            <Label x:Name="lblMensaje" FontSize="Large" TextColor="AntiqueWhite" BackgroundColor="AliceBlue" 
+                   VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand"></Label>
+       </AbsoluteLayout>
+        
+    </Grid>
+</ContentPage>
