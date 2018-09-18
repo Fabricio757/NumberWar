@@ -4,11 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Forms;
+using System.IO;
 
 using TouchTracking;
 
+
 namespace NumberWar
 {
+    enum EnumVista { Soldados, Grilla, Inicio, Help};
+
     public partial class MainPage : ContentPage
     {/*
         public static readonly int DIMENSION_C = 5;
@@ -23,8 +27,8 @@ namespace NumberWar
         public static readonly int DIMENSION_C = 10;
         public static readonly int DIMENSION_F = 10;
 
-        public static readonly int CANT_ENEMIGOS = 10;
-        public static readonly int CANT_SOLDADOS = 12;
+        public static readonly int CANT_ENEMIGOS = 4;
+        public static readonly int CANT_SOLDADOS = 6;
 
         public static readonly int TAM_ENEMIGO = 3;
         public static readonly int TAM_SOLDADO = 4;
@@ -51,11 +55,9 @@ namespace NumberWar
                        
 
             ListaNuevos.SelectionMode = ListViewSelectionMode.Single;
-            SetupView();
+            SetupListView();
 
-            lblMensaje.Text = "Inicio";
-            GrillaPrincipal.Children.Add(bxvMensaje, 0, 1);
-            bxvMensaje.IsVisible=true;
+            Vista(EnumVista.Inicio);
 
         }
 
@@ -73,7 +75,7 @@ namespace NumberWar
             Coordenadas2.Text = e._Mensaje;
         }
 
-        private void SetupView()
+        private void SetupListView()
         {
             var template = new DataTemplate(typeof(TextCell));
             template.SetBinding(TextCell.TextProperty, "VectorToSring");
@@ -110,58 +112,116 @@ namespace NumberWar
             
             GrillaT.VectoresNuevos = new ListaVectores(GrillaT);
             GrillaT.VectoresNuevos.GenerarVectores(CANT_SOLDADOS, TAM_SOLDADO, GrillaT, true);
-            
-            GrillaPrincipal.Children.Add(Grilla, 0, 1);
-            Grilla.IsVisible = true;
-            bxvMensaje.IsVisible = false;
+            GrillaT.ValorTotalVectoresNuevos = GrillaT.VectoresNuevos.ValorTotal();
 
-            Coordenadas2.Text = "Nuevo: " + GrillaT.WN_Vectores.Count().ToString() + " Seed: " + RandomizeFHA.GetSeed().ToString();
-                 
+            Vista(EnumVista.Grilla);
+
+            //Coordenadas2.Text = "Nuevo: " + GrillaT.WN_Vectores.Count().ToString() + " Seed: " + RandomizeFHA.GetSeed().ToString();
+            Coordenadas2.Text = GrillaT.MensajeValorTotal();
+
+
         }
 
         private void btnNuevoVector_Clicked(object sender, EventArgs e)
         {
-            GrillaPrincipal.Children.Add(VistaNuevos, 0, 1);
-            SetupView(); 
-            ListaNuevos.ItemsSource = GrillaT.VectoresNuevos;
-            VistaNuevos.IsVisible = true;
+            try
+            {
+                SetupListView();
+                if (GrillaT.VectoresNuevos.Count == 0)
+                    ListaNuevos.ItemsSource = null;
+                else
+                    ListaNuevos.ItemsSource = GrillaT.VectoresNuevos;
+
+                Vista(EnumVista.Soldados);
+            }
+            catch (Exception Ex)
+            {
+                this.DisplayAlert("Message", "Soldiers 0", "Ok");
+            }
+
+
         }
 
         private void ListaNuevos_ItemTapped(object sender, ItemTappedEventArgs e)
         {
-            if (e.Item != null)
+            try
             {
-                GrillaT.vectorNuevo = (Vector)e.Item;
-                //Coordenadas2.Text = GrillaT.vectorNuevo.ToStringTiles();
-                GrillaPrincipal.Children.Add(Grilla, 0, 1);
-                VistaNuevos.IsVisible = false;
+                if (e.Item != null)
+                {
+                    GrillaT.vectorNuevo = (Vector)e.Item;
+                    Vista(EnumVista.Grilla);
+                }
+                else
+                    this.DisplayAlert("Mensaje", "No se seleccionó un Item", "Ok");
             }
-            else
-                this.DisplayAlert("Mensaje", "No se seleccionó un Item", "Ok");
+            catch (Exception Ex)
+            {
+                this.DisplayAlert("Error", Ex.Message, "Ok");
+            }
         }
 
         private void btnAux_Clicked(object sender, EventArgs e)
         {
-            Vector vector1 = new Vector(GrillaT);
-            Vector vector2 = new Vector(GrillaT);
 
-            vector1.AddTile(new TilesWN(GrillaT, 2, 2, 6));
-            vector2.AddTile(new TilesWN(GrillaT, 2, 3, 5));
+            //var documents = "C:\\AUXILIAR";
+            /*var documents = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var filename = Path.Combine(documents, "Write.txt");
+            File.WriteAllText(filename, "Write this text into a file");
 
-            GrillaT.MisVectores.Add(vector1);
-            GrillaT.MisVectores.Add(vector2);
+            Application.Current.Properties["Nivel"] = "0";*/
 
-            Vector vector_Rojo = new Vector(GrillaT);
-            vector_Rojo.AddTile(new TilesWN(GrillaT, 0, 0, 6));
-            GrillaT.WN_Vectores.Add(vector_Rojo);
 
-            GrillaT.Mostrar();
+
+            GrillaT.Solucion();
+            this.DisplayAlert("Resultado", GrillaT.listaSoluciones.ToString(), "Ok");
+            //Vista(EnumVista.Help);
+
+        }
+
+
+
+        private void Vista(EnumVista Vista)
+        {
+            switch (Vista)
+            {
+                case EnumVista.Inicio:
+
+                    lblMensaje.Text = "-- Begin!! --";
+                    GrillaPrincipal.Children.Add(bxvMensaje, 0, 1);
+                    bxvMensaje.IsVisible = true;
+
+                    break;
+
+                case EnumVista.Grilla:
+
+                    GrillaPrincipal.Children.Add(Grilla, 0, 1);
+                    Grilla.IsVisible = true;
+                    bxvMensaje.IsVisible = false;
+                    VistaNuevos.IsVisible = false;
+
+                    break;
+
+                case EnumVista.Soldados:
+
+                    GrillaPrincipal.Children.Add(VistaNuevos, 0, 1);
+                    VistaNuevos.IsVisible = true;
+
+                    break;
+
+                case EnumVista.Help:
+
+                    lblMensaje.Text = "-- Help --";
+                    GrillaPrincipal.Children.Add(bxvMensaje, 0, 1);
+                    bxvMensaje.IsVisible = true;
+
+                    break;
+
+            }
         }
 
         private void btnCerrar_Clicked(object sender, EventArgs e)
         {
-            GrillaPrincipal.Children.Add(Grilla, 0, 1);
-            VistaNuevos.IsVisible = false;
+            Vista(EnumVista.Grilla);
         }
     }
 }

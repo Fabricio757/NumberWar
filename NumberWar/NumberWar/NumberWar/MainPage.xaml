@@ -19,10 +19,10 @@
             <Label x:Name="Coordenadas2" Text="" BackgroundColor="CadetBlue" VerticalOptions="FillAndExpand" ></Label>
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="0.25*" />
-                    <ColumnDefinition Width="0.25*" />
-                    <ColumnDefinition Width="0.25*" />
-                    <ColumnDefinition Width="0.25*" />
+                    <ColumnDefinition Width="0.33*" />
+                    <ColumnDefinition Width="0.33*" />
+                    <ColumnDefinition Width="0.33*" />
+                    <ColumnDefinition Width="0*" />
                 </Grid.ColumnDefinitions>
                 <Button x:Name="btnNuevoVector" Text="Soldiers" BackgroundColor="CadetBlue" Grid.Column="0" VerticalOptions="FillAndExpand" Clicked="btnNuevoVector_Clicked"></Button>
                 <Button x:Name="btnReset" Text="New Game" BackgroundColor="CadetBlue"  Grid.Column="1" VerticalOptions="FillAndExpand" Clicked="btnReset_Clicked"></Button>

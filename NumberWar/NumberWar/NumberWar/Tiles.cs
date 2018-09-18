@@ -107,6 +107,10 @@ namespace NumberWar
             Grilla = G;
         }
 
+        public Tiles Clon()
+        {
+            return (new Tiles(Grilla, Col, Row, Valor));
+        }
 
         public virtual Tiles Nuevo(GrillaTiles G)
         {
@@ -236,6 +240,21 @@ namespace NumberWar
             Grilla = G;
         }
 
+        public Vector Clon()
+        {
+            Vector vR = new Vector(Grilla);
+            foreach (Tiles T in this)
+                vR.Add(T.Clon());
+                
+            return (vR);
+        }
+
+        public void RemoveByIndex(int Index)
+        {
+            this.RemoveAt(Index);
+        }
+    
+
         public Boolean Interseccion(Vector v)
         {/*Devuelve true si se interseca con el vector v.*/
             foreach (Tiles T1 in this)
@@ -310,11 +329,11 @@ namespace NumberWar
 
         public String ToStringTiles()
         {
-            String s = "";
+            String s = " " + this.VectorNumber.ToString() + " -  ";
             foreach (Tiles T in this)
                 s = s + " [" + T.Valor.ToString() + "]";
 
-            s = s + " (" + this.VectorNumber.ToString() + ")";
+            s = s + " = " + this.ValorTotal().ToString();
 
             return s;
         }
@@ -359,6 +378,7 @@ namespace NumberWar
                 T2.Col = _Col;
             }
         }
+
 
         public void MoverTileA(int Index, int pX, int pY)
         {//Mueve los Tiles, desde Index para atras. los parametros pX,pY es donde muevo el primero.
@@ -623,7 +643,7 @@ namespace NumberWar
         }
 
         public Vector GetTilesByCR(int pCol, int pRow)
-        {//Devuelve un con los tiles que se encuentran en la posicion pCol, pRow
+        {//Devuelve un vector con los tiles que se encuentran en la posicion pCol, pRow
             Vector VR = new Vector(Grilla);
             foreach (Vector v in this)
             {
@@ -870,7 +890,7 @@ namespace NumberWar
                     if (TileView_Seleccionado != null)
                     {
 
-                        T = new Timer(TimeSpan.FromSeconds(5), () => ClickLento_TimeOut(sender, args, "TOut "));
+                        T = new Timer(TimeSpan.FromSeconds(3), () => ClickLento_TimeOut(sender, args, "TOut "));
                         T.Start();
 
                         /* Esta parte genera el eveno MoveFrom */

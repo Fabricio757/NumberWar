@@ -259,6 +259,7 @@ namespace NumberWar
         public Color Color_vectorNuevo { set; get; }
 
         public ListaVectores VectoresNuevos;
+        public int ValorTotalVectoresNuevos = 0;
         public Vector vectorNuevo;
         public Vector vectorSeleccionado;
         public Tiles tileSeleccionado;
@@ -325,23 +326,30 @@ namespace NumberWar
 
         private void GrillaWN_Tile_Click(object sender, TileEventArgs e)
         {
-            if (vectorNuevo != null)
+            try
             {
-                if (vectorNuevo.Mostrado == false)
+                if (vectorNuevo != null)
                 {
-                    foreach (Tiles T in vectorNuevo)
+                    if (vectorNuevo.Mostrado == false)
                     {
-                        T.Col = e.Tile.Col;
-                        T.Row = e.Tile.Row;
-                    }
+                        foreach (Tiles T in vectorNuevo)
+                        {
+                            T.Col = e.Tile.Col;
+                            T.Row = e.Tile.Row;
+                        }
 
-                    vectorSeleccionado = vectorNuevo; //Lo selecciono
-                    tileSeleccionado = vectorNuevo[0];
-                    this.MisVectores.AgregarVector(vectorNuevo, false); //Lo agrego a los Azules
-                    VectoresNuevos.Remove(vectorNuevo); //Lo borro de los nuevos
-                    vectorNuevo.Mostrar();
+                        vectorSeleccionado = vectorNuevo; //Lo selecciono
+                        tileSeleccionado = vectorNuevo[0];
+                        this.MisVectores.AgregarVector(vectorNuevo, false); //Lo agrego a los Azules
+                        VectoresNuevos.Remove(vectorNuevo); //Lo borro de los nuevos
+                        vectorNuevo.Mostrar();
+                    }
+                    this.execMensaje(sender, e, MensajeValorTotal(), 0);
                 }
-                this.execMensaje(sender, e, MensajeValorTotal(), 0);
+            }
+            catch (Exception Ex)
+            {
+                this.execMensaje(sender, e, Ex.Message, 0);
             }
         }
 
@@ -482,7 +490,7 @@ namespace NumberWar
             return R;
         }
 
-        private String MensajeValorTotal()
+        public String MensajeValorTotal()
         {
             String S = "";
             int Neto_Rojo = 0;
@@ -500,6 +508,7 @@ namespace NumberWar
 
                     if (V_Tile <= 0)
                         Neto_Rojo = Neto_Rojo + V_Tile;
+
                     else
                         Excedente_Azul = Excedente_Azul + V_Tile;
                 }
@@ -508,8 +517,10 @@ namespace NumberWar
                 S = "You Win!!!";
             else
             {
-                S = "Red Enemies lives: " + CuadritosRojos.ToString() + " Total Points: " + Neto_Rojo.ToString() + '\n' + "Wasted points of blue soldiersg: " + Excedente_Azul.ToString() + '\n';
-                S = S + "Blue Soldiers Points to put: " + VectoresNuevos.ValorTotal().ToString();
+                Double Ratio = ((Double)ValorTotalVectoresNuevos / (Double)this.WN_Vectores.ValorTotal());
+                S = "Red Enemies: " + this.WN_Vectores.ValorTotal().ToString() + " Blue Soldiers: " + this.ValorTotalVectoresNuevos.ToString() + " Ratio: " + Ratio.ToString("N4") + "\n";
+                S = S + "Red Enemies lives: " + CuadritosRojos.ToString() + " Total Points: " + Neto_Rojo.ToString() + '\n';
+                S = S + "Blue Soldiers Points to put: " + VectoresNuevos.ValorTotal().ToString() + " Wasted points of blue soldiers " + Excedente_Azul.ToString();
             };
 
             return (S);
@@ -520,6 +531,153 @@ namespace NumberWar
             return (new TilesWN(this));
         }
 
+        #region Solución
+
+        private void IntercambioValores(Tiles T1, Tiles T2)
+        {
+            int Valor0 = T1.Valor;
+            T1.Valor = T2.Valor;
+            T2.Valor = Valor0;
+        }
+
+        private void armarMatriz(int[,] Matriz)
+        {/* Devuelve la matriz con las posibles posiciones de los vectores solución*/
+            int i = 0;
+            for (int a = 0; a <= 3; a++)
+                for (int b = 0; b <= 3; b++)
+                    for (int c = 0; c <= 3; c++)
+                    {
+                        Matriz[i, 0] = 0; //Este va siempre 0
+                        Matriz[i, 1] = a;
+                        Matriz[i, 2] = b;
+                        Matriz[i, 3] = c;
+                        i++;
+                    }
+        }
+
+        public ListaVectores FactorialValores(Vector V)
+        {
+            ListaVectores L = new ListaVectores(this);
+            if (V.Count == 2)
+            {
+                L.Add(V.Clon());
+
+                Vector v2 = V.Clon();
+                IntercambioValores(v2[0], v2[1]);
+                L.Add(v2);
+            }
+            else
+            {
+                for (int i = 0; i < V.Count; i++)
+                {
+                    Vector V2 = V.Clon();
+                    V2.RemoveByIndex(i);
+                    ListaVectores L2 = FactorialValores(V2);
+                    for (int j = 0; j < L2.Count; j++)
+                    {
+                        L2[j].Insert(0, V[i]);
+                        L.Add(L2[j]);
+                    }
+
+                }
+
+            }
+            return (L);
+        }
+
+        int[,] MatrizPocisiones = new int[64, 4];
+        int[,] DicColRow = new int[4, 2] { { 0,0}, { 1, 0 }, {0,1 }, {0,-1 }};
+        public ListaVectores listaSoluciones;
+        int iN = 0;
+
+        public Boolean SolucionR(int Index_Azul, int Nivel)   
+        {
+            Boolean Retorno = false;
+
+            if (TapeTodo())
+                Retorno = true;
+            else
+            if (Index_Azul < VectoresNuevos.Count)
+            {
+                Vector v_Azul = this.VectoresNuevos[Index_Azul];
+
+                if (Nivel == 5)
+                    Nivel = 5;
+
+                foreach (Vector v_Rojo in this.WN_Vectores)
+                {
+                    if (Retorno)
+                        break;
+
+                    foreach (Tiles T_Rojo in v_Rojo)            //Recorro todos los Tiles Rojos
+                    {
+                        if (Retorno)
+                            break;
+                        ListaVectores listaFactorial = FactorialValores(v_Azul);
+                        foreach (Vector v_Factorial in listaFactorial)
+                        {
+                            if (Retorno)
+                                break;
+
+                            for (int i = 63; i >= 0; i--)
+                            {
+                                iN++;
+                                v_Factorial[0].Col = T_Rojo.Col;
+                                v_Factorial[0].Row = T_Rojo.Row;
+                                for (int j = 1; j <= 3; j++)
+                                {
+                                    v_Factorial[j].Col = v_Factorial[j - 1].Col + DicColRow[MatrizPocisiones[i, j], 0];
+                                    v_Factorial[j].Row = v_Factorial[j - 1].Row + DicColRow[MatrizPocisiones[i, j], 1];
+                                }
+                                Vector Solucion = v_Factorial.Clon();
+                                listaSoluciones.Add(Solucion);
+
+                                if (SolucionR(Index_Azul + 1, Nivel + 1))
+                                {
+                                    Retorno = true;
+                                    break; 
+                                }
+                                else
+                                    listaSoluciones.RemoveAt(listaSoluciones.Count - 1); //saco el ultimo
+
+                            }
+                        }
+                    }
+                }
+            };
+            
+            return Retorno;
+        }
+
+        private Boolean TapeTodo()
+        {
+            Boolean Retorno = true;
+            
+            foreach (Vector V in this.WN_Vectores)
+                foreach (Tiles T in V)
+                {
+                    int TotalAzul = listaSoluciones.GetTilesByCR(T.Col, T.Row).ValorTotal();
+                    if (TotalAzul <= Math.Abs(T.Valor))
+                    {
+                        Retorno = false;
+                        break;
+                    };
+                }
+
+            return Retorno;
+
+        }
+
+
+        public void Solucion()
+        {
+            listaSoluciones = new ListaVectores(null);
+            armarMatriz(MatrizPocisiones);
+            iN = 0;
+            SolucionR(0, 0);            
+        }
+
+        #endregion
     }
 
 }
