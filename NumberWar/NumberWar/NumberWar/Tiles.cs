@@ -4,6 +4,8 @@ using System.Text;
 using Xamarin.Forms;
 using TouchTracking;
 using System.Threading;
+using Xamarin.Forms;
+using Newtonsoft.Json;
 
 namespace NumberWar
 {
@@ -98,7 +100,15 @@ namespace NumberWar
         {
             Grilla = G;
         }
-        
+
+        [JsonConstructor]
+        public Tiles(int _Col, int _Row, int _valor)
+        {
+            Col = _Col;
+            Row = _Row;
+            Valor = _valor;
+        }
+
         public Tiles(GrillaTiles G, int _Col, int _Row, int _valor)
         {
             Col = _Col;
@@ -110,6 +120,11 @@ namespace NumberWar
         public Tiles Clon()
         {
             return (new Tiles(Grilla, Col, Row, Valor));
+        }
+
+        public void SetGrilla(GrillaTiles G)
+        {
+            Grilla = G;
         }
 
         public virtual Tiles Nuevo(GrillaTiles G)
@@ -193,7 +208,6 @@ namespace NumberWar
             return (RT);
         }
 
-
         public virtual void MostrarTileEnGrilla()
         {//Tiles
 
@@ -234,6 +248,13 @@ namespace NumberWar
 
         public Boolean Mostrado { set; get; }
 
+        [JsonConstructor]
+        public Vector()
+        {
+            Mostrado = false;
+            Grilla = null;
+        }
+
         public Vector(GrillaTiles G)
         {
             Mostrado = false;
@@ -247,6 +268,13 @@ namespace NumberWar
                 vR.Add(T.Clon());
                 
             return (vR);
+        }
+
+        public void SetGrilla(GrillaTiles G)
+        {
+            Grilla = G;
+            foreach (Tiles T in this)
+                T.SetGrilla(G);
         }
 
         public void RemoveByIndex(int Index)
@@ -543,6 +571,19 @@ namespace NumberWar
             Grilla = G;
         }
 
+        [JsonConstructor]
+        public ListaVectores()
+        {
+            Grilla = null;
+        }
+
+        public void SetGrilla(GrillaTiles G)
+        {
+            Grilla = G;
+            foreach (Vector V in this)
+                V.SetGrilla(G);
+        }
+
         public void GenerarVectores(int cantVectores, int Longitud, GrillaTiles G, Boolean PermiteIntersecados)
         {
             //Random rand = new Random();
@@ -660,6 +701,13 @@ namespace NumberWar
                 R = R + T.ValorTotal();
             }
             return (R);
+        }
+
+        public void RenumerarVectores()
+        {
+            int i = 1;
+            foreach (Vector V in this)
+                V.VectorNumber = i++;                
         }
 
         public override String ToString()

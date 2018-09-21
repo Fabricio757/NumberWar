@@ -11,12 +11,30 @@
             <RowDefinition Height="2*" />
         </Grid.RowDefinitions>
         <!-- Place new controls here -->
-        <Label x:Name="Titulo" Text="Number War  5" BackgroundColor="CadetBlue" Grid.Row="0" Grid.Column="0"></Label>
+        <Grid x:Name="Encabezado" BackgroundColor="White">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.60*" />
+                <ColumnDefinition Width="0.20*" />
+                <ColumnDefinition Width="0.20*" />
+            </Grid.ColumnDefinitions>
+            <Label x:Name="Titulo" Text="Batalla de Números" Grid.Column="0" TextColor="Blue" FontSize="Medium" Grid.Row="0">
+                <Label.FontFamily>
+                    <OnPlatform x:TypeArguments="x:String">
+                        <On Platform="Android" Value="Roboto" />
+                        <On Platform="UWP" Value="Tahoma" />
+                    </OnPlatform>
+                </Label.FontFamily>
+            </Label>
+            
+            <Button x:Name="btnCambio" Clicked="btnCambio_Clicked" Grid.Column="1" BackgroundColor="Blue"></Button>
+            <Image Grid.Column="2" Source="ic_shortcut_fha.png" BackgroundColor="White" HorizontalOptions="End"></Image>
+        </Grid>
+        
         <Grid x:Name="Grilla" BackgroundColor="DarkCyan" RowSpacing="3" ColumnSpacing="3" Grid.Row="1" Grid.Column="0">
 
         </Grid>        
         <StackLayout Grid.Row="2" Grid.Column="0">
-            <Label x:Name="Coordenadas2" Text="" BackgroundColor="CadetBlue" VerticalOptions="FillAndExpand" ></Label>
+            <Label x:Name="Coordenadas2" Text="" BackgroundColor="CadetBlue" FontSize="10" VerticalOptions="FillAndExpand" ></Label>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="0.33*" />
@@ -24,9 +42,9 @@
                     <ColumnDefinition Width="0.33*" />
                     <ColumnDefinition Width="0*" />
                 </Grid.ColumnDefinitions>
-                <Button x:Name="btnNuevoVector" Text="Soldiers" BackgroundColor="CadetBlue" Grid.Column="0" VerticalOptions="FillAndExpand" Clicked="btnNuevoVector_Clicked"></Button>
-                <Button x:Name="btnReset" Text="New Game" BackgroundColor="CadetBlue"  Grid.Column="1" VerticalOptions="FillAndExpand" Clicked="btnReset_Clicked"></Button>
-                <Button x:Name="btnAux" Text="Help" BackgroundColor="CadetBlue"  Grid.Column="2" VerticalOptions="FillAndExpand" Clicked="btnAux_Clicked"></Button>
+                <Button x:Name="btnNuevoVector" Text="Soldados" BackgroundColor="CadetBlue" Grid.Column="0" VerticalOptions="FillAndExpand"  Clicked="btnNuevoVector_Clicked"></Button>
+                <Button x:Name="btnReset" Text="Nuevo" BackgroundColor="CadetBlue"  Grid.Column="1" VerticalOptions="FillAndExpand" Clicked="btnReset_Clicked"></Button>
+                <Button x:Name="btnAux" Text="Ayuda" BackgroundColor="CadetBlue"  Grid.Column="2" VerticalOptions="FillAndExpand" Clicked="btnAux_Clicked"></Button>
                 <Entry x:Name="txtIngreso" Grid.Column="3" Placeholder="Enter text here"></Entry>
             </Grid>
             <Label x:Name="Pie" Text="" BackgroundColor="CadetBlue" VerticalOptions="FillAndExpand" ></Label>

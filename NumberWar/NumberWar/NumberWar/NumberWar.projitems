@@ -26,4 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TouchActionType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TouchEffect.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)ic_shortcut_fha.png" />
+  </ItemGroup>
 </Project>

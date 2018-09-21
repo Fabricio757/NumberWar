@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using Xamarin.Forms;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace NumberWar
 {
@@ -145,6 +147,10 @@ namespace NumberWar
 
         }
 
+        [JsonConstructor]
+        public TilesWN(int _Col, int _Row, int _valor) : base(_Col, _Row, _valor)
+        { }
+
         public TilesWN(GrillaTiles G, int _Col, int _Row, int _valor) : base(G, _Col, _Row, _valor)
         { }
 
@@ -173,7 +179,10 @@ namespace NumberWar
             int v_Azul = VL.ValorAzul;
             int v_Rojo = VL.ValorRojo;
 
-            if (v_Azul + v_Rojo <= 0)
+
+            Boolean bAzules = ((GrillaWN)Grilla).ActualSoldadosAzules;
+
+            if ((bAzules && (v_Azul + v_Rojo <= 0)) || (! bAzules && (v_Azul + v_Rojo < 0)))
             {
                 BC = ((GrillaWN)Grilla).ColorWM_Vectores;
                 if (v_Azul != 0)
@@ -200,11 +209,14 @@ namespace NumberWar
 
             int suma = v_Azul + v_Rojo - T_Seleccionado.Valor;
 
-            if (((v_Azul == T_Seleccionado.Valor) && (v_Rojo == 0)) || ((v_Rojo == T_Seleccionado.Valor) && (v_Azul == 0)))
+            //if (((v_Azul == T_Seleccionado.Valor) && (v_Rojo == 0)) || ((v_Rojo == T_Seleccionado.Valor) && (v_Azul == 0)))
+            if((v_Azul - T_Seleccionado.Valor == 0) && (v_Rojo == 0))
                 BC = G.ColorCelda;
             else
             {
-                if (suma <= 0)
+                Boolean bAzules = ((GrillaWN)Grilla).ActualSoldadosAzules;
+
+                if (suma <= (bAzules ? 0: -1))  
                 {
                     BC = ((GrillaWN)G).ColorWM_Vectores;
                     if (v_Azul - T_Seleccionado.Valor != 0)
@@ -213,7 +225,8 @@ namespace NumberWar
                 else
                 {
                     BC = ((GrillaWN)G).ColorMisVectores;
-                    if (v_Rojo - T_Seleccionado.Valor > 0)
+                    //if (v_Rojo - T_Seleccionado.Valor > 0)
+                    if (v_Rojo != 0)
                         BC = BC.AddLuminosity(0.15);
                 }
              };
@@ -249,14 +262,18 @@ namespace NumberWar
 
     public class GrillaWN : GrillaTiles
     {
-        private Tiles T_Aux;
+        //private Tiles T_Aux;
+        private Double ActualRatio;
+        private Double BestRatio;
+        //private Double BestRatioRed;
+        public Boolean ActualSoldadosAzules { set; get; }
 
         public ListaVectores MisVectores { set; get; }
         public ListaVectores WN_Vectores { set; get; }
 
         public Color ColorWM_Vectores { set; get; }
         public Color ColorMisVectores { set; get; }
-        public Color Color_vectorNuevo { set; get; }
+        //public Color Color_vectorNuevo { set; get; }
 
         public ListaVectores VectoresNuevos;
         public int ValorTotalVectoresNuevos = 0;
@@ -280,12 +297,21 @@ namespace NumberWar
 
         private void GrillaWN_Tile_DobleClick(object sender, TileEventArgs e)
         {
-            if (tileSeleccionado != null)
+            try
             {
-                vectorSeleccionado.OcultarEnGrilla(this);
-                int Indice = vectorSeleccionado.BuscarTile(e.Tile.Col, e.Tile.Row);
-                vectorSeleccionado.SubirTile(Indice);
-                vectorSeleccionado.Mostrar();
+                if (tileSeleccionado != null)
+                {
+                    if (vectorSeleccionado != null)
+                    {
+                        vectorSeleccionado.OcultarEnGrilla(this);
+                        int Indice = vectorSeleccionado.BuscarTile(e.Tile.Col, e.Tile.Row);
+                        vectorSeleccionado.SubirTile(Indice);
+                        vectorSeleccionado.Mostrar();
+                    }
+                }
+            }
+            catch (Exception Ex)
+            {
             }
         }
 
@@ -337,12 +363,12 @@ namespace NumberWar
                             T.Col = e.Tile.Col;
                             T.Row = e.Tile.Row;
                         }
-
-                        vectorSeleccionado = vectorNuevo; //Lo selecciono
-                        tileSeleccionado = vectorNuevo[0];
-                        this.MisVectores.AgregarVector(vectorNuevo, false); //Lo agrego a los Azules
-                        VectoresNuevos.Remove(vectorNuevo); //Lo borro de los nuevos
+                        MisVectores.Add(vectorNuevo);
+                        VectoresNuevos.Remove(vectorNuevo);
+                        
                         vectorNuevo.Mostrar();
+
+                        GuardarEnArchivos_Soldados();
                     }
                     this.execMensaje(sender, e, MensajeValorTotal(), 0);
                 }
@@ -355,27 +381,108 @@ namespace NumberWar
 
         private void GrillaWN_Tile_MoveTo(object sender, TileEventArgs e)
         {
-            if (tileSeleccionado != null)
+            try
             {
-                if (e.MovioA_Row >= 0)
+                if (tileSeleccionado != null)
                 {
-                    int Indice = vectorSeleccionado.BuscarTile(tileSeleccionado.Col, tileSeleccionado.Row);
-                    vectorSeleccionado.OcultarEnGrilla(this);
+                    if (e.MovioA_Row >= 0)
+                    {
+                        int Indice = vectorSeleccionado.BuscarTile(tileSeleccionado.Col, tileSeleccionado.Row);
+                        vectorSeleccionado.OcultarEnGrilla(this);
 
-                    vectorSeleccionado.MoverTileA(Indice, e.MovioA_Col, e.MovioA_Row);
-                    if (vectorSeleccionado != null)
-                        vectorSeleccionado.Mostrar();
+                        vectorSeleccionado.MoverTileA(Indice, e.MovioA_Col, e.MovioA_Row);
+                        if (vectorSeleccionado != null)
+                            vectorSeleccionado.Mostrar();
 
-                    this.execMensaje(sender, e, MensajeValorTotal(), 0);
+                        GuardarEnArchivos_Soldados();
+
+                        this.execMensaje(sender, e, MensajeValorTotal(), 0);
+                    }
+                    else
+                    {
+                        this.execMensaje(sender, e, "Se paso pa arriva", 0);
+                    }
                 }
-                else
-                {
-                    this.execMensaje(sender, e, "Se paso pa arriva", 0);
-                }
+            }
+            catch (Exception Ex)
+            {
+                this.execMensaje(sender, e, "No hay Vector seleccionado", 0);
             }
         }
 
         #endregion
+
+        public void GuardarEnArchivos()
+        {
+            var documents = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var filenameVectoresEnemigos = Path.Combine(documents, "VectoresEnemigos.txt");
+            string jsonVectoresEnemigos = JsonConvert.SerializeObject(this.WN_Vectores);
+            File.WriteAllText(filenameVectoresEnemigos, jsonVectoresEnemigos);
+
+            GuardarEnArchivos_Soldados();
+        }
+
+        public void GuardarEnArchivos_Soldados()
+        {
+            var documents = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var filenameVectoresSoldados = Path.Combine(documents, "VectoresSoldados.txt");
+            var filenameVectoresNuevos = Path.Combine(documents, "VectoresNuevos.txt");
+
+            string jsonVectoresNuevos = JsonConvert.SerializeObject(this.VectoresNuevos);
+            string jsonVectoresSoldados = JsonConvert.SerializeObject(this.MisVectores);
+
+            File.WriteAllText(filenameVectoresNuevos, jsonVectoresNuevos);
+            File.WriteAllText(filenameVectoresSoldados, jsonVectoresSoldados);
+
+            Application.Current.Properties["SoldadosAzules"] = ActualSoldadosAzules ? "SI" : "NO";
+        }
+
+        public void RecuperarDeArchivos()
+        {
+            var documents = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var filenameVectoresNuevos = Path.Combine(documents, "VectoresNuevos.txt");
+            var filenameVectoresEnemigos = Path.Combine(documents, "VectoresEnemigos.txt");
+            var filenameVectoresSoldados = Path.Combine(documents, "VectoresSoldados.txt");
+
+            string jsonVectoresSoldados = File.ReadAllText(filenameVectoresSoldados);
+            MisVectores = JsonConvert.DeserializeObject<ListaVectores>(jsonVectoresSoldados);
+            MisVectores.SetGrilla(this);
+            MisVectores = ConvertirLista(MisVectores);
+            MisVectores.RenumerarVectores();
+
+            string jsonVectoresEnemigos = File.ReadAllText(filenameVectoresEnemigos);
+            WN_Vectores = JsonConvert.DeserializeObject<ListaVectores>(jsonVectoresEnemigos);
+            WN_Vectores.SetGrilla(this);
+            WN_Vectores = ConvertirLista(WN_Vectores);
+            WN_Vectores.RenumerarVectores();
+
+            string jsonVectoresNuevos = File.ReadAllText(filenameVectoresNuevos);
+            VectoresNuevos = JsonConvert.DeserializeObject<ListaVectores>(jsonVectoresNuevos);
+            VectoresNuevos.SetGrilla(this);
+            VectoresNuevos = ConvertirLista(VectoresNuevos);
+            VectoresNuevos.RenumerarVectores();
+
+            ValorTotalVectoresNuevos = VectoresNuevos.ValorTotal() + MisVectores.ValorTotal();
+            ActualRatio = Math.Abs((Double)ValorTotalVectoresNuevos / (Double)this.WN_Vectores.ValorTotal());
+        }
+
+        private ListaVectores ConvertirLista(ListaVectores L)
+        {/* Sisi, perdimos la elegancia....*/
+            ListaVectores LR = new ListaVectores(this);
+
+            foreach (Vector V in L)
+            {
+                Vector VR = new Vector(this);
+                foreach (Tiles T in V)
+                {
+                    TilesWN TW = new TilesWN(this, T.Col, T.Row, T.Valor);
+                    VR.Add(TW);
+                }
+                LR.Add(VR);
+            }
+
+            return LR;
+        }
 
         public override Boolean MovimientoPermitido(Vector vector, int Index, int pX, int pY)
         {
@@ -457,21 +564,6 @@ namespace NumberWar
             T.MostrarTileEnGrilla();
         }
 
-        public int ValorTotalEnemigos2()
-        {
-            return (WN_Vectores.ValorTotal());
-        }
-
-        public int ValorTotalSoldados2()
-        {
-            int R = 0;
-            foreach (Vector V in this.MisVectores)
-                foreach (Tiles T in V)
-                    R = R + T.Valor;
-
-            return R;
-        }
-
         public int ValorTotalTile(int Col, int Row)
         {
             int R = 0;
@@ -501,26 +593,34 @@ namespace NumberWar
                 foreach (Tiles T in V)
                 {
                     V_Tile = this.ValorTotalTile(T.Col, T.Row);
-                    if (V_Tile <= 0)
+                    if ((ActualSoldadosAzules && (V_Tile <= 0)) || (! ActualSoldadosAzules && (V_Tile < 0)))
+                    {
                         CuadritosRojos++;
-                    else
-                        CuadritosRojos = CuadritosRojos + 0;
-
-                    if (V_Tile <= 0)
                         Neto_Rojo = Neto_Rojo + V_Tile;
-
+                    }
                     else
                         Excedente_Azul = Excedente_Azul + V_Tile;
                 }
 
             if (CuadritosRojos == 0)
-                S = "You Win!!!";
+            {
+                S = "Ganaste!!!";
+                if (ActualRatio < BestRatio)
+                {
+                    string mm = ActualRatio.ToString("N2");
+                    if(ActualSoldadosAzules)
+                        Application.Current.Properties["BestRatioBlue"] = mm;
+                    else
+                        Application.Current.Properties["BestRatioRed"] = mm;
+                }
+            }
             else
             {
-                Double Ratio = ((Double)ValorTotalVectoresNuevos / (Double)this.WN_Vectores.ValorTotal());
-                S = "Red Enemies: " + this.WN_Vectores.ValorTotal().ToString() + " Blue Soldiers: " + this.ValorTotalVectoresNuevos.ToString() + " Ratio: " + Ratio.ToString("N4") + "\n";
-                S = S + "Red Enemies lives: " + CuadritosRojos.ToString() + " Total Points: " + Neto_Rojo.ToString() + '\n';
-                S = S + "Blue Soldiers Points to put: " + VectoresNuevos.ValorTotal().ToString() + " Wasted points of blue soldiers " + Excedente_Azul.ToString();
+                S = "Puntos Enemigos: " + Math.Abs(this.WN_Vectores.ValorTotal()).ToString() + " Puntos Soldados: " + this.ValorTotalVectoresNuevos.ToString() + " Razón: " + ActualRatio.ToString("N2") + "\n";
+                S = S + "Enemigos Vivos: " + CuadritosRojos.ToString() + " Puntos: " + Math.Abs(Neto_Rojo).ToString() + '\n';
+                S = S + "Puntos Azules: " + VectoresNuevos.ValorTotal().ToString() + '\n'; // + " Wasted points of blue soldiers " + Excedente_Azul.ToString();
+                S = S + "" + '\n';
+                S = S + "Mejor Radio: " + BestRatio.ToString("N2");
             };
 
             return (S);
@@ -529,6 +629,50 @@ namespace NumberWar
         public override Tiles NuevoTile()
         {
             return (new TilesWN(this));
+        }
+
+        public void NuevoJuego(int Cant_Soldados, int Tam_Soldado, int Cant_Enemigos, int Tam_Enemigo)
+        {
+            tileSeleccionado = null;
+            vectorSeleccionado = null;
+            vectorNuevo = null;
+
+            MisVectores.Clear();
+            WN_Vectores.Clear();
+            
+            RandomizeFHA.Reset();
+
+            //Enemigos
+            WN_Vectores.Clear();
+            WN_Vectores.GenerarVectores(Cant_Enemigos, Tam_Enemigo, this, false);
+
+            foreach (Vector v in WN_Vectores)
+                foreach (Tiles T in v)
+                    T.Valor = T.Valor * -1;
+
+            LimpiarGrilla();
+
+            Mostrar();
+
+            //Soldados
+            VectoresNuevos = new ListaVectores(this);
+            VectoresNuevos.GenerarVectores(Cant_Soldados, Tam_Soldado, this, true);
+
+            string BR = ActualSoldadosAzules ? "BestRatioBlue" : "BestRatioRed";
+
+            if (Application.Current.Properties.ContainsKey(BR))
+            {
+                BestRatio = Convert.ToDouble(Application.Current.Properties[BR].ToString());
+            }
+            else
+            {
+                Application.Current.Properties[BR] = "1000";
+                BestRatio = 1000;
+            }
+
+            ValorTotalVectoresNuevos = VectoresNuevos.ValorTotal() + MisVectores.ValorTotal();
+            ActualRatio = Math.Abs((Double)ValorTotalVectoresNuevos / (Double)this.WN_Vectores.ValorTotal());
+
         }
 
         #region Solución

@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 using System.IO;
+using Newtonsoft.Json;
+
 
 using TouchTracking;
 
@@ -27,15 +29,19 @@ namespace NumberWar
         public static readonly int DIMENSION_C = 10;
         public static readonly int DIMENSION_F = 10;
 
-        public static readonly int CANT_ENEMIGOS = 4;
-        public static readonly int CANT_SOLDADOS = 6;
+        public static readonly int CANT_ENEMIGOS = 10;
+        public static readonly int CANT_SOLDADOS = 12;
 
         public static readonly int TAM_ENEMIGO = 3;
         public static readonly int TAM_SOLDADO = 4;
 
 
+
         public GrillaWN GrillaT;
 
+        private Boolean Inicio = false;
+        private Boolean SoldadosAzules = true;
+        
 
         public MainPage()
         {
@@ -45,17 +51,30 @@ namespace NumberWar
             GrillaT.Dimension_C = DIMENSION_C;
             GrillaT.Dimension_R = DIMENSION_F;
 
+            SoldadosAzules = true;
             GrillaT.ColorMisVectores = Color.Blue;
             GrillaT.ColorWM_Vectores = Color.Red;
-            GrillaT.Color_vectorNuevo = Color.WhiteSmoke;
+
+
+            if (Application.Current.Properties.ContainsKey("SoldadosAzules"))
+            {
+                if (Application.Current.Properties["SoldadosAzules"].ToString() == "NO")
+                {
+                    SoldadosAzules = false;
+                    GrillaT.ColorMisVectores = Color.Red;
+                    GrillaT.ColorWM_Vectores = Color.Blue;
+                }
+            }
+
+            GrillaT.ActualSoldadosAzules = SoldadosAzules;
 
             GrillaT.ArmarGrilla();
-
-            GrillaT.evMensaje += GrillaT_evMensaje;
-                       
+            GrillaT.evMensaje += GrillaT_evMensaje;                       
 
             ListaNuevos.SelectionMode = ListViewSelectionMode.Single;
             SetupListView();
+
+            Inicio = true;
 
             Vista(EnumVista.Inicio);
 
@@ -63,7 +82,7 @@ namespace NumberWar
 
         private void GrillaT_evMensaje(object sender, MensajeEventArgs e)
         {
-            if (e._Mensaje == "You Win!!!")
+            if (e._Mensaje == "Ganaste!!!")
             {
                 GrillaPrincipal.Children.Add(bxvMensaje, 0, 1);
                 lblMensaje.Text = e._Mensaje;
@@ -81,45 +100,45 @@ namespace NumberWar
             template.SetBinding(TextCell.TextProperty, "VectorToSring");
             ListaNuevos.ItemTemplate = template;
             if (GrillaT.VectoresNuevos != null)
-                lblInfo.Text = "Total Value Soldiers in List: " + GrillaT.VectoresNuevos.ValorTotal().ToString();
-        }
-
-        public void Generar_vectoresEnemigos()
-        {
-            GrillaT.WN_Vectores.Clear();
-            GrillaT.WN_Vectores.GenerarVectores(CANT_ENEMIGOS, TAM_ENEMIGO, GrillaT, false);
-            //int I = Convert.ToInt32(txtIngreso.Text);
-            //GrillaT.WN_Vectores.GenerarVectores(I, TAM_ENEMIGO, GrillaT, false);
-
-            foreach (Vector v in GrillaT.WN_Vectores)
-                foreach (Tiles T in v)
-                    T.Valor = T.Valor * -1;
+                lblInfo.Text = "Total en la lista: " + GrillaT.VectoresNuevos.ValorTotal().ToString();
         }
 
         private void btnReset_Clicked(object sender, EventArgs e)
         {
-            GrillaT.tileSeleccionado = null;
-            GrillaT.vectorSeleccionado = null;
-            GrillaT.vectorNuevo = null;
 
-            GrillaT.MisVectores.Clear();
-            GrillaT.WN_Vectores.Clear();
-            GrillaT.vectorNuevo = null;
-            RandomizeFHA.Reset();
-            this.Generar_vectoresEnemigos();
-            GrillaT.LimpiarGrilla();
-            GrillaT.Mostrar();
-            
-            GrillaT.VectoresNuevos = new ListaVectores(GrillaT);
-            GrillaT.VectoresNuevos.GenerarVectores(CANT_SOLDADOS, TAM_SOLDADO, GrillaT, true);
-            GrillaT.ValorTotalVectoresNuevos = GrillaT.VectoresNuevos.ValorTotal();
+            if (Inicio)
+            {
+                GrillaT.RecuperarDeArchivos();
+                btnCambio.BackgroundColor = SoldadosAzules ? Color.Blue : Color.Red;
+                GrillaT.Mostrar();
+            }
+            else
+            {
+
+                if (SoldadosAzules == true)
+                {
+                    GrillaT.ColorMisVectores = Color.Blue;
+                    GrillaT.ColorWM_Vectores = Color.Red;
+                    GrillaT.NuevoJuego(CANT_SOLDADOS, TAM_SOLDADO, CANT_ENEMIGOS, TAM_ENEMIGO);
+                }
+                else
+                {
+                    GrillaT.ColorMisVectores = Color.Red;
+                    GrillaT.ColorWM_Vectores = Color.Blue;
+                    GrillaT.NuevoJuego(CANT_ENEMIGOS + 18, TAM_ENEMIGO, CANT_SOLDADOS, TAM_SOLDADO);
+                }
+                
+            }
+
+
+
+            GrillaT.ActualSoldadosAzules = SoldadosAzules;
+            GrillaT.GuardarEnArchivos();
+
+            Inicio = false;
 
             Vista(EnumVista.Grilla);
-
-            //Coordenadas2.Text = "Nuevo: " + GrillaT.WN_Vectores.Count().ToString() + " Seed: " + RandomizeFHA.GetSeed().ToString();
             Coordenadas2.Text = GrillaT.MensajeValorTotal();
-
-
         }
 
         private void btnNuevoVector_Clicked(object sender, EventArgs e)
@@ -136,11 +155,10 @@ namespace NumberWar
             }
             catch (Exception Ex)
             {
-                this.DisplayAlert("Message", "Soldiers 0", "Ok");
+                this.DisplayAlert("Mensaje", "Soldado 0", "Ok");
             }
-
-
         }
+
 
         private void ListaNuevos_ItemTapped(object sender, ItemTappedEventArgs e)
         {
@@ -160,21 +178,13 @@ namespace NumberWar
             }
         }
 
+
         private void btnAux_Clicked(object sender, EventArgs e)
         {
-
-            //var documents = "C:\\AUXILIAR";
-            /*var documents = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var filename = Path.Combine(documents, "Write.txt");
-            File.WriteAllText(filename, "Write this text into a file");
-
-            Application.Current.Properties["Nivel"] = "0";*/
-
-
-
-            GrillaT.Solucion();
-            this.DisplayAlert("Resultado", GrillaT.listaSoluciones.ToString(), "Ok");
-            //Vista(EnumVista.Help);
+            //this.DisplayAlert("Mensaje", filenameVectoresNuevos, "Ok");
+            //GrillaT.Solucion();
+            //this.DisplayAlert("Resultado", GrillaT.listaSoluciones.ToString(), "Ok");
+            Vista(EnumVista.Help);
 
         }
 
@@ -186,7 +196,7 @@ namespace NumberWar
             {
                 case EnumVista.Inicio:
 
-                    lblMensaje.Text = "-- Begin!! --";
+                    lblMensaje.Text = "-- Inicio!! --";
                     GrillaPrincipal.Children.Add(bxvMensaje, 0, 1);
                     bxvMensaje.IsVisible = true;
 
@@ -210,7 +220,7 @@ namespace NumberWar
 
                 case EnumVista.Help:
 
-                    lblMensaje.Text = "-- Help --";
+                    lblMensaje.Text = "-- Ayuda --";
                     GrillaPrincipal.Children.Add(bxvMensaje, 0, 1);
                     bxvMensaje.IsVisible = true;
 
@@ -222,6 +232,20 @@ namespace NumberWar
         private void btnCerrar_Clicked(object sender, EventArgs e)
         {
             Vista(EnumVista.Grilla);
+        }
+
+        private void btnCambio_Clicked(object sender, EventArgs e)
+        {
+            if (btnCambio.BackgroundColor == Color.Red)
+            {
+                btnCambio.BackgroundColor = Color.Blue;
+                SoldadosAzules = true;
+            }
+            else
+            {
+                btnCambio.BackgroundColor = Color.Red;
+                SoldadosAzules = false;
+            }
         }
     }
 }
