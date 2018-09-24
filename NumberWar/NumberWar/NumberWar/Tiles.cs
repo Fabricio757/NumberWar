@@ -388,6 +388,17 @@ namespace NumberWar
             return R;
         }
 
+        public Boolean ExisteValor(int Valor)
+        {//
+            Boolean R = false;
+
+                foreach (Tiles T1 in this)
+                {
+                    if (T1.Valor == Valor) R = true;
+                }
+            return R;
+        }
+
         public void SubirTile(int Indice)
         {
             if (Indice > 0)
@@ -406,7 +417,6 @@ namespace NumberWar
                 T2.Col = _Col;
             }
         }
-
 
         public void MoverTileA(int Index, int pX, int pY)
         {//Mueve los Tiles, desde Index para atras. los parametros pX,pY es donde muevo el primero.
@@ -556,6 +566,27 @@ namespace NumberWar
         {
             foreach (Tiles T in this)
                 T.MostrarEnColor(C);
+        }
+
+        public Boolean IgualXValores(Vector V, Boolean MismoOrden)
+        {
+            Boolean R = true;
+            int i = 0;
+            foreach (Tiles T in V)
+                if (MismoOrden)
+                {
+                    if (this[i++].Valor != T.Valor)
+                        R = false;
+                }
+                else
+                {
+                    if (!this.ExisteValor(T.Valor))
+                        R = false;
+                }
+
+                    
+
+            return R;
         }
     }
     #endregion
@@ -717,6 +748,26 @@ namespace NumberWar
                 s = s + " (" + V.ToString() + ") ";
 
             return s;
+        }
+
+        private void sacarVectorXValores(Vector pV)
+        {
+            int i = 0;
+            foreach (Vector V in this)
+            { 
+                if (V.IgualXValores(pV, false))
+                {
+                    this.Remove(V);
+                    break;
+                }
+            i++;
+            }
+        }
+
+        public void Restar(ListaVectores lista)
+        {
+            foreach (Vector v in lista)
+                this.sacarVectorXValores(v);
         }
     }
     #endregion

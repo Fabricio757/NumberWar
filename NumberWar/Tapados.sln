@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NumberWar.Android", "NumberWar\NumberWar.Android\NumberWar.Android.csproj", "{7786FECD-829C-4B4D-8EDA-4AE9A582D9CB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tapados.Android", "NumberWar\NumberWar.Android\Tapados.Android.csproj", "{7786FECD-829C-4B4D-8EDA-4AE9A582D9CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NumberWar.iOS", "NumberWar\NumberWar.iOS\NumberWar.iOS.csproj", "{BC90DFFD-200D-4DE6-91EC-D7859647123E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tapados.iOS", "NumberWar\NumberWar.iOS\Tapados.iOS.csproj", "{BC90DFFD-200D-4DE6-91EC-D7859647123E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NumberWar.UWP", "NumberWar\NumberWar.UWP\NumberWar.UWP.csproj", "{BB2B36D1-F398-4451-B022-3E866ACDC956}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tapados.UWP", "NumberWar\NumberWar.UWP\Tapados.UWP.csproj", "{BB2B36D1-F398-4451-B022-3E866ACDC956}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "NumberWar", "NumberWar\NumberWar\NumberWar.shproj", "{68C1E1D4-E348-4331-B2A2-B6ACB03E213A}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Tapados", "NumberWar\NumberWar\Tapados.shproj", "{68C1E1D4-E348-4331-B2A2-B6ACB03E213A}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution

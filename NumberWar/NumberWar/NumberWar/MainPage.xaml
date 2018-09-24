@@ -7,8 +7,9 @@
     <Grid BackgroundColor="Maroon" x:Name="GrillaPrincipal">
         <Grid.RowDefinitions>
             <RowDefinition Height="0.5*" />
-            <RowDefinition Height="4.5*" />
-            <RowDefinition Height="2*" />
+            <RowDefinition Height="6.5*" />
+            <RowDefinition Height="3*" />
+            
         </Grid.RowDefinitions>
         <!-- Place new controls here -->
         <Grid x:Name="Encabezado" BackgroundColor="White">
@@ -17,10 +18,9 @@
                 <ColumnDefinition Width="0.20*" />
                 <ColumnDefinition Width="0.20*" />
             </Grid.ColumnDefinitions>
-            <Label x:Name="Titulo" Text="Batalla de Números" Grid.Column="0" TextColor="Blue" FontSize="Medium" Grid.Row="0">
+            <Label x:Name="Titulo" Text="Tapados" Grid.Column="0" TextColor="Blue" FontSize="Medium" Grid.Row="0">
                 <Label.FontFamily>
                     <OnPlatform x:TypeArguments="x:String">
-                        <On Platform="Android" Value="Roboto" />
                         <On Platform="UWP" Value="Tahoma" />
                     </OnPlatform>
                 </Label.FontFamily>
@@ -33,6 +33,7 @@
         <Grid x:Name="Grilla" BackgroundColor="DarkCyan" RowSpacing="3" ColumnSpacing="3" Grid.Row="1" Grid.Column="0">
 
         </Grid>        
+     
         <StackLayout Grid.Row="2" Grid.Column="0">
             <Label x:Name="Coordenadas2" Text="" BackgroundColor="CadetBlue" FontSize="10" VerticalOptions="FillAndExpand" ></Label>
             <Grid>
@@ -42,30 +43,38 @@
                     <ColumnDefinition Width="0.33*" />
                     <ColumnDefinition Width="0*" />
                 </Grid.ColumnDefinitions>
-                <Button x:Name="btnNuevoVector" Text="Soldados" BackgroundColor="CadetBlue" Grid.Column="0" VerticalOptions="FillAndExpand"  Clicked="btnNuevoVector_Clicked"></Button>
+                <Button x:Name="btnSoldados" Text="Soldados" BackgroundColor="CadetBlue" Grid.Column="0" VerticalOptions="FillAndExpand"  Clicked="btnSoldados_Clicked"></Button>
                 <Button x:Name="btnReset" Text="Nuevo" BackgroundColor="CadetBlue"  Grid.Column="1" VerticalOptions="FillAndExpand" Clicked="btnReset_Clicked"></Button>
-                <Button x:Name="btnAux" Text="Ayuda" BackgroundColor="CadetBlue"  Grid.Column="2" VerticalOptions="FillAndExpand" Clicked="btnAux_Clicked"></Button>
+                <Button x:Name="btnAux" Text="Instrucciones" BackgroundColor="CadetBlue"  Grid.Column="2" VerticalOptions="FillAndExpand" Clicked="btnAux_Clicked"></Button>
                 <Entry x:Name="txtIngreso" Grid.Column="3" Placeholder="Enter text here"></Entry>
             </Grid>
             <Label x:Name="Pie" Text="" BackgroundColor="CadetBlue" VerticalOptions="FillAndExpand" ></Label>
         </StackLayout>
         
-            <Grid x:Name="VistaNuevos" IsVisible="False" BackgroundColor="Black">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="0.1*" />
-                    <RowDefinition Height="0.8*" />
-                    <RowDefinition Height="0.1*" />
-                </Grid.RowDefinitions>
+        <Grid x:Name="VistaNuevos" IsVisible="False" BackgroundColor="Black">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.1*" />
+                <RowDefinition Height="0.8*" />
+                <RowDefinition Height="0.1*" />
+            </Grid.RowDefinitions>
             <Label x:Name="lblInfo" Grid.Row="0" Text="" BackgroundColor="Tomato" VerticalOptions="FillAndExpand" ></Label>
             <ListView x:Name="ListaNuevos" Grid.Row="1" BackgroundColor="Azure" ItemTapped="ListaNuevos_ItemTapped" >
-                </ListView>                
-                <Button x:Name="btnCerrar" Text="Cancel" BackgroundColor="Tomato"  Grid.Row="2" VerticalOptions="FillAndExpand" Clicked="btnCerrar_Clicked"></Button>
-            </Grid>
+            </ListView>                
+            <Button x:Name="btnCerrar_Nuevos" Text="Cancel" BackgroundColor="Tomato"  Grid.Row="2" VerticalOptions="FillAndExpand" Clicked="btnCerrar_Nuevos_Clicked"></Button>
+        </Grid>
 
-        <AbsoluteLayout x:Name="bxvMensaje" IsVisible="False" BackgroundColor="Brown" VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand">
-            <Label x:Name="lblMensaje" FontSize="Large" TextColor="AntiqueWhite" BackgroundColor="AliceBlue" 
-                   VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand"></Label>
-       </AbsoluteLayout>
+        <AbsoluteLayout x:Name="bxvMensaje" IsVisible="False" BackgroundColor="Brown">
+            
+            <Grid x:Name="GrillaMensaje" AbsoluteLayout.LayoutBounds="0.5,.5, 0.8, 0.8" AbsoluteLayout.LayoutFlags="All">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="0.85*" />
+                    <RowDefinition Height="0.15*" />
+                </Grid.RowDefinitions>
+                <Label x:Name="lblMensaje" FontSize="Large" Grid.Row="0" TextColor="BurlyWood" BackgroundColor="AliceBlue" 
+                   VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand" ></Label>
+                <Button x:Name="btnCerrar_Mensajes" Grid.Row="1" Text="Ok" BackgroundColor="Tomato" VerticalOptions="FillAndExpand" Clicked="btnCerrar_Mensajes_Clicked" ></Button>
+            </Grid>
+        </AbsoluteLayout>
         
     </Grid>
 </ContentPage>

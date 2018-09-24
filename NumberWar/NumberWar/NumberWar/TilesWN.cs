@@ -265,7 +265,8 @@ namespace NumberWar
         //private Tiles T_Aux;
         private Double ActualRatio;
         private Double BestRatio;
-        //private Double BestRatioRed;
+        private Dictionary<string, string> Configuracion = new Dictionary<string, string>();
+
         public Boolean ActualSoldadosAzules { set; get; }
 
         public ListaVectores MisVectores { set; get; }
@@ -273,7 +274,6 @@ namespace NumberWar
 
         public Color ColorWM_Vectores { set; get; }
         public Color ColorMisVectores { set; get; }
-        //public Color Color_vectorNuevo { set; get; }
 
         public ListaVectores VectoresNuevos;
         public int ValorTotalVectoresNuevos = 0;
@@ -394,8 +394,6 @@ namespace NumberWar
                         if (vectorSeleccionado != null)
                             vectorSeleccionado.Mostrar();
 
-                        GuardarEnArchivos_Soldados();
-
                         this.execMensaje(sender, e, MensajeValorTotal(), 0);
                     }
                     else
@@ -419,6 +417,10 @@ namespace NumberWar
             string jsonVectoresEnemigos = JsonConvert.SerializeObject(this.WN_Vectores);
             File.WriteAllText(filenameVectoresEnemigos, jsonVectoresEnemigos);
 
+            var filenameVectoresNuevos = Path.Combine(documents, "VectoresNuevos.txt");
+            string jsonVectoresNuevos = JsonConvert.SerializeObject(this.VectoresNuevos);
+            File.WriteAllText(filenameVectoresNuevos, jsonVectoresNuevos);
+
             GuardarEnArchivos_Soldados();
         }
 
@@ -426,15 +428,10 @@ namespace NumberWar
         {
             var documents = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var filenameVectoresSoldados = Path.Combine(documents, "VectoresSoldados.txt");
-            var filenameVectoresNuevos = Path.Combine(documents, "VectoresNuevos.txt");
-
-            string jsonVectoresNuevos = JsonConvert.SerializeObject(this.VectoresNuevos);
             string jsonVectoresSoldados = JsonConvert.SerializeObject(this.MisVectores);
-
-            File.WriteAllText(filenameVectoresNuevos, jsonVectoresNuevos);
             File.WriteAllText(filenameVectoresSoldados, jsonVectoresSoldados);
 
-            Application.Current.Properties["SoldadosAzules"] = ActualSoldadosAzules ? "SI" : "NO";
+            this.SetConfig("SoldadosAzules", ActualSoldadosAzules ? "SI" : "NO");            
         }
 
         public void RecuperarDeArchivos()
@@ -462,9 +459,55 @@ namespace NumberWar
             VectoresNuevos = ConvertirLista(VectoresNuevos);
             VectoresNuevos.RenumerarVectores();
 
-            ValorTotalVectoresNuevos = VectoresNuevos.ValorTotal() + MisVectores.ValorTotal();
-            ActualRatio = Math.Abs((Double)ValorTotalVectoresNuevos / (Double)this.WN_Vectores.ValorTotal());
+            ValorTotalVectoresNuevos = VectoresNuevos.ValorTotal();
+
+            VectoresNuevos.Restar(MisVectores);
+
+
+            RecuperarMejorRazon();
         }
+
+        #region Configuracion
+
+        public String GetConfig(String Clave)
+        {
+            return Configuracion[Clave];
+        }
+
+        public Boolean ExistsConfig(String Clave)
+        {
+            return Configuracion.ContainsKey(Clave);
+        }
+
+        public void LoadConfig()
+        {
+            var documents = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var filename = Path.Combine(documents, "Configuracion.txt");
+            if (! File.Exists(filename))
+            {
+                SetConfig("SoldadosAzules", "SI");
+                SetConfig("BestRatioBlue", "1000");
+            }
+            string jsonS = File.ReadAllText(filename);
+            Configuracion = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonS);
+
+        }
+
+        public void SetConfig(String Clave, String Valor)
+        {
+            if (Configuracion.ContainsKey(Clave))
+                Configuracion[Clave] = Valor;
+            else
+                Configuracion.Add(Clave, Valor);
+
+            var documents = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var filename = Path.Combine(documents, "Configuracion.txt");
+
+            string jsonS = JsonConvert.SerializeObject(Configuracion);
+            File.WriteAllText(filename, jsonS);
+        }
+
+        #endregion
 
         private ListaVectores ConvertirLista(ListaVectores L)
         {/* Sisi, perdimos la elegancia....*/
@@ -586,7 +629,6 @@ namespace NumberWar
         {
             String S = "";
             int Neto_Rojo = 0;
-            int Excedente_Azul = 0;
             int V_Tile = 0;
             int CuadritosRojos = 0;
             foreach (Vector V in this.WN_Vectores)
@@ -598,9 +640,14 @@ namespace NumberWar
                         CuadritosRojos++;
                         Neto_Rojo = Neto_Rojo + V_Tile;
                     }
-                    else
-                        Excedente_Azul = Excedente_Azul + V_Tile;
                 }
+
+            int valorSoldados = this.VectoresNuevos.ValorTotal();
+            int valorMisVectores = this.MisVectores.ValorTotal();
+            int valorVectoresEnmigos = this.WN_Vectores.ValorTotal();
+
+            Double TotalRatio = Math.Abs((Double)valorSoldados / (Double)valorVectoresEnmigos);
+            ActualRatio = Math.Abs((Double)valorMisVectores / (Double)valorVectoresEnmigos);
 
             if (CuadritosRojos == 0)
             {
@@ -608,19 +655,18 @@ namespace NumberWar
                 if (ActualRatio < BestRatio)
                 {
                     string mm = ActualRatio.ToString("N2");
-                    if(ActualSoldadosAzules)
-                        Application.Current.Properties["BestRatioBlue"] = mm;
+                    if (ActualSoldadosAzules)
+                        SetConfig("BestRatioBlue", mm);
                     else
-                        Application.Current.Properties["BestRatioRed"] = mm;
+                        SetConfig("BestRatioRed", mm);
                 }
             }
             else
             {
-                S = "Puntos Enemigos: " + Math.Abs(this.WN_Vectores.ValorTotal()).ToString() + " Puntos Soldados: " + this.ValorTotalVectoresNuevos.ToString() + " Razón: " + ActualRatio.ToString("N2") + "\n";
+                S = S + "Puntos Enemigos: " + Math.Abs(valorVectoresEnmigos).ToString() + " Puntos Soldados: " + valorSoldados.ToString() + " Soldados/Enemigos: " + TotalRatio.ToString("N2") + "\n";
                 S = S + "Enemigos Vivos: " + CuadritosRojos.ToString() + " Puntos: " + Math.Abs(Neto_Rojo).ToString() + '\n';
-                S = S + "Puntos Azules: " + VectoresNuevos.ValorTotal().ToString() + '\n'; // + " Wasted points of blue soldiers " + Excedente_Azul.ToString();
-                S = S + "" + '\n';
-                S = S + "Mejor Radio: " + BestRatio.ToString("N2");
+                S = S + "Puntos Azules Disponibles: " + VectoresNuevos.ValorTotal().ToString() + '\n';
+                S = S + "RAZÓN ACTUAL (Puntos de Soldados aplicados/puntos enemigos): " + ActualRatio.ToString("N2") + "   MEJOR RAZÓN: " + BestRatio.ToString("N2");
             };
 
             return (S);
@@ -657,22 +703,23 @@ namespace NumberWar
             //Soldados
             VectoresNuevos = new ListaVectores(this);
             VectoresNuevos.GenerarVectores(Cant_Soldados, Tam_Soldado, this, true);
+            RecuperarMejorRazon();
+        }
 
-            string BR = ActualSoldadosAzules ? "BestRatioBlue" : "BestRatioRed";
-
-            if (Application.Current.Properties.ContainsKey(BR))
+        private void RecuperarMejorRazon()
+        {
+            BestRatio = 1000;
+            if (ActualSoldadosAzules)
             {
-                BestRatio = Convert.ToDouble(Application.Current.Properties[BR].ToString());
+                if (this.ExistsConfig("BestRatioBlue"))
+                    BestRatio = Convert.ToDouble(this.GetConfig("BestRatioBlue"));
             }
             else
-            {
-                Application.Current.Properties[BR] = "1000";
-                BestRatio = 1000;
+            { 
+                if (this.ExistsConfig("BestRatioRed"))
+                    BestRatio = Convert.ToDouble(this.GetConfig("BestRatioRed"));
+
             }
-
-            ValorTotalVectoresNuevos = VectoresNuevos.ValorTotal() + MisVectores.ValorTotal();
-            ActualRatio = Math.Abs((Double)ValorTotalVectoresNuevos / (Double)this.WN_Vectores.ValorTotal());
-
         }
 
         #region Solución
