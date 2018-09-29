@@ -265,6 +265,8 @@ namespace NumberWar
         //private Tiles T_Aux;
         private Double ActualRatio;
         private Double BestRatio;
+        private int PuntosEnemigos = 0;
+        private int PuntosSoldados = 0;
         private Dictionary<string, string> Configuracion = new Dictionary<string, string>();
 
         public Boolean ActualSoldadosAzules { set; get; }
@@ -463,6 +465,8 @@ namespace NumberWar
 
             VectoresNuevos.Restar(MisVectores);
 
+            PuntosSoldados = VectoresNuevos.ValorTotal() + MisVectores.ValorTotal();
+            PuntosEnemigos = WN_Vectores.ValorTotal();
 
             RecuperarMejorRazon();
         }
@@ -642,12 +646,10 @@ namespace NumberWar
                     }
                 }
 
-            int valorSoldados = this.VectoresNuevos.ValorTotal();
             int valorMisVectores = this.MisVectores.ValorTotal();
-            int valorVectoresEnmigos = this.WN_Vectores.ValorTotal();
 
-            Double TotalRatio = Math.Abs((Double)valorSoldados / (Double)valorVectoresEnmigos);
-            ActualRatio = Math.Abs((Double)valorMisVectores / (Double)valorVectoresEnmigos);
+            Double TotalRatio = Math.Abs((Double)PuntosSoldados / (Double)PuntosEnemigos);
+            ActualRatio = Math.Abs((Double)valorMisVectores / (Double)PuntosEnemigos);
 
             if (CuadritosRojos == 0)
             {
@@ -663,10 +665,10 @@ namespace NumberWar
             }
             else
             {
-                S = S + "Puntos Enemigos: " + Math.Abs(valorVectoresEnmigos).ToString() + " Puntos Soldados: " + valorSoldados.ToString() + " Soldados/Enemigos: " + TotalRatio.ToString("N2") + "\n";
-                S = S + "Enemigos Vivos: " + CuadritosRojos.ToString() + " Puntos: " + Math.Abs(Neto_Rojo).ToString() + '\n';
-                S = S + "Puntos Azules Disponibles: " + VectoresNuevos.ValorTotal().ToString() + '\n';
-                S = S + "RAZÓN ACTUAL (Puntos de Soldados aplicados/puntos enemigos): " + ActualRatio.ToString("N2") + "   MEJOR RAZÓN: " + BestRatio.ToString("N2");
+                S = S + "RECORD: " + BestRatio.ToString("N2") + '\n';
+                S = S + "Este juego" + '\n';
+                S = S + "Puntos Enemigos: " + Math.Abs(PuntosEnemigos).ToString() + " Puntos Soldados: " + PuntosSoldados.ToString() + "  Soldados/Enemigos: " + TotalRatio.ToString("N2") + "\n";
+                S = S + "RAZÓN ACTUAL (Soldados aplicados/enemigos): " + ActualRatio.ToString("N2");
             };
 
             return (S);
@@ -703,6 +705,10 @@ namespace NumberWar
             //Soldados
             VectoresNuevos = new ListaVectores(this);
             VectoresNuevos.GenerarVectores(Cant_Soldados, Tam_Soldado, this, true);
+
+            PuntosSoldados = VectoresNuevos.ValorTotal();
+            PuntosEnemigos = WN_Vectores.ValorTotal();
+
             RecuperarMejorRazon();
         }
 
